@@ -15,8 +15,8 @@ for i from 0 to 19 {
 
 /* Call Process */
 CallProcess() {
-    /* generate Call Process attributes */
-
+    /* increase total number of calls */
+    totalNumberOfCalls += 1
     /* generate current (base) station */
     /* can be any of the 20 stations with a probability distribution X */
     currentStation = random(X, stations)
@@ -62,7 +62,6 @@ CallProcess() {
         !(carDirection == Direction.TO_1ST_STATION && stationId == 1)) {
         /* hold while being on-call */
         Hold(callDuration);
-
         /* release the acquired channel before a call handover */
         currentStation.numberOfAvailableChannels += 1;
 
@@ -107,6 +106,7 @@ CallProcess() {
         callDuration = callDuration - timeToNextStation;
     }
 
+    /* there will be a call termination otherwise */
     /* if the call duration is less than or equal to the time to next station */
     if (callDuration <= timeToNextStation) {
         /* hold while being on-call */

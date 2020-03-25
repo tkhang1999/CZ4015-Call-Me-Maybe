@@ -4,6 +4,7 @@ futureEventList = {};                   /* priority queue of all events,
                                         sorted by event time (empty initially) */
 numberOfBlockedCalls = 0;               /* number of blocked calls */
 numberOfDroppedCalls = 0;               /* number of dropped calls */
+generatedCalls = 0;                     /* number of generated calls */
 totalNumberOfCalls = 10000;             /* total nunmber of calls */
 Station[] stations = new Station[20];   /* a list of 20 stations */
 
@@ -18,29 +19,30 @@ MainFunction() {
         stations[i].setNumberOfAvailableChannels(10);
     }
 
-    /* generate call events */
-    generatedCalls = 0;
-    while (generatedCalls < totalNumberOfCalls) {
-        /* generate car direction*/
-        /* either to 1st station or to 20th station (equal probabilities) */
-        direction = random(Direction.TO_1ST_STATION, Direction.TO_20TH_STATION);
-        /* generate the car position using uniform distribution */
-        /* range of the position is from 0 to 2 km (station diameter) */
-        position = uniform(0, 2);
-        /* create Call Initiation event */
-        callInitiationEvent = new CallInitiationEvent(initiationTime, carSpeed,)
-                                                      currentStation, position,
-                                                      callDuration, direction);
-        /* add the event to the Future Event List (FEL) */
-        futureEventList.add(callInitiationEvent);
-        /* increase the number of generated calls */
-        generatedCalls += 1;
-    }
+    /* generate the first call events */
+
+    /* generate car direction*/
+    /* either to 1st station or to 20th station (equal probabilities) */
+    direction = random(Direction.TO_1ST_STATION, Direction.TO_20TH_STATION);
+    /* generate the car position using uniform distribution */
+    /* range of the position is from 0 to 2 km (station diameter) */
+    position = uniform(0, 2);
+    /* create Call Initiation event */
+    callInitiationEvent = new CallInitiationEvent(initiationTime, carSpeed,)
+                                                  currentStation, position,
+                                                  callDuration, direction);
+    /* add the event to the Future Event List (FEL) */
+    futureEventList.add(callInitiationEvent);
+    /* increase the number of generated calls */
+    generatedCalls += 1;
 
     /* event handling routines */
     while (futureEventList not empty) {
         /* get an event from FEL */
         event = futureEventList.dequeue();
+        /* system clock synchronization */
+        clock = event.getTime();
+        /* handle event */
         if (event is CallInitiationEvent) {
             /* handle Call Initiation event (Section 3) */
             CallInitiationEventHandlingFunction(event);
@@ -88,54 +90,70 @@ CallInitiationEventHandlingFunction(event) {
         Station.isHandoverReservation() == true)) {
             /* increase the number of blocked calls */
             numberOfBlockedCalls += 1;
-            /* exit the handling function */
-            return;
     }
     else {
         /* acquire a channel if available */
         /* decrease the nunmber of available channels by 1 */
         currentStation.numberOfAvailableChannels -= 1;
+
+        /* get the station id */
+        stationId = currentStation.getId();
+        /* calculate the distance to the next station in km */
+        distanceToNextStation = 2 - carPosition;
+        /* calculate the time to the next station in seconds */
+        timeToNextStation = (distanceToNextStation/carSpeed)*3600;
+        /* initialize next event */
+        nextEvent = null;
+
+        /* create Call Termination event if: */
+        /* 1. call duration is less than or equal to the time to next station */
+        if (callDuration <= timeToNextStation) {
+            /* calculate termination time */
+            terminationTime = clock + callDuration;
+            /* create Call Termination event */
+            nextEvent = new CallTerminationEvent(terminationTime, currentStation);
+        }
+        /* 2. call is in the last station, depending on the direction of the car */
+        else if ((carDirection == Direction.TO_20TH_STATION && stationId == 20)
+            || (carDirection == Direction.TO_1ST_STATION && stationId == 1)) {
+            /* calculate termination time */
+            terminationTime = clock + timeToNextStation;
+            /* create Call Termination event */
+            nextEvent = new CallTerminationEvent(terminationTime, currentStation);
+        }
+        /* create Call Handover event otherwise */
+        else {
+            /* calculate handover time*/
+            handoverTime = clock + timeToNextStation;
+            /* calculate call remaining duration */
+            callRemainingDuration = callDuration - timeToNextStation;
+            /* create Call Handover event */
+            nextEvent = new CallHandoverEvent(handoverTime, carSpeed)
+                                            currentStation,
+                                            callRemainingDuration, carDirection);
+        }
+
+        /* add the event to the Future Event List (FEL) */
+        futureEventList.add(nextEvent);
     }
 
-    /* get the station id */
-    stationId = currentStation.getId();
-    /* calculate the distance to the next station in km */
-    distanceToNextStation = 2 - carPosition;
-    /* calculate the time to the next station in seconds */
-    timeToNextStation = (distanceToNextStation/carSpeed)*3600;
-    /* initialize next event */
-    nextEvent = null;
-
-    /* create Call Termination event if: */
-    /* 1. call duration is less than or equal to the time to next station */
-    if (callDuration <= timeToNextStation) {
-        /* calculate termination time */
-        terminationTime = clock + callDuration;
-        /* create Call Termination event */
-        nextEvent = new CallTerminationEvent(terminationTime, currentStation);
+    /* generate next Call Initiation event */
+    if (generatedCalls < totalNumberOfCalls) {
+        /* generate car direction*/
+        /* either to 1st station or to 20th station (equal probabilities) */
+        direction = random(Direction.TO_1ST_STATION, Direction.TO_20TH_STATION);
+        /* generate the car position using uniform distribution */
+        /* range of the position is from 0 to 2 km (station diameter) */
+        position = uniform(0, 2);
+        /* create Call Initiation event */
+        callInitiationEvent = new CallInitiationEvent(initiationTime, carSpeed,)
+                                                    currentStation, position,
+                                                    callDuration, direction);
+        /* add the event to the Future Event List (FEL) */
+        futureEventList.add(callInitiationEvent);
+        /* increase the number of generated calls */
+        generatedCalls += 1;
     }
-    /* 2. call is in the last station, depending on the direction of the car */
-    else if ((carDirection == Direction.TO_20TH_STATION && stationId == 20)
-        || (carDirection == Direction.TO_1ST_STATION && stationId == 1)) {
-        /* calculate termination time */
-        terminationTime = clock + timeToNextStation;
-        /* create Call Termination event */
-        nextEvent = new CallTerminationEvent(terminationTime, currentStation);
-    }
-    /* create Call Handover event otherwise */
-    else {
-        /* calculate handover time*/
-        handoverTime = clock + timeToNextStation;
-        /* calculate call remaining duration */
-        callRemainingDuration = callDuration - timeToNextStation;
-        /* create Call Handover event */
-        nextEvent = new CallHandoverEvent(handoverTime, carSpeed)
-                                          currentStation,
-                                          callRemainingDuration, carDirection);
-    }
-        
-    /* add the event to the Future Event List (FEL) */
-    futureEventList.add(nextEvent);
 }
 
 
