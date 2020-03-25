@@ -1,0 +1,236 @@
+/* initializing system state variables */
+clock = 0;                              /* system clock */
+futureEventList = {};                   /* priority queue of all events, 
+                                        sorted by event time (empty initially) */
+numberOfBlockedCalls = 0;               /* number of blocked calls */
+numberOfDroppedCalls = 0;               /* number of dropped calls */
+totalNumberOfCalls = 10000;             /* total nunmber of calls */
+Station[] stations = new Station[20];   /* a list of 20 stations */
+
+
+/* Main Function */
+MainFunction() {
+    /* generate 20 stations */
+    for i from 0 to 19 {
+        /* create a new station with id (i + 1) - from 1 to 20 */
+        stations[i] = new Station(i + 1);
+        /* set the number of available channels to 10 */
+        stations[i].setNumberOfAvailableChannels(10);
+    }
+
+    /* generate call events */
+    generatedCalls = 0;
+    while (generatedCalls < totalNumberOfCalls) {
+        /* generate car direction*/
+        /* either to 1st station or to 20th station (equal probabilities) */
+        direction = random(Direction.TO_1ST_STATION, Direction.TO_20TH_STATION);
+        /* generate the car position using uniform distribution */
+        /* range of the position is from 0 to 2 km (station diameter) */
+        position = uniform(0, 2);
+        /* create Call Initiation event */
+        callInitiationEvent = new CallInitiationEvent(initiationTime, carSpeed,)
+                                                      currentStation, position,
+                                                      callDuration, direction);
+        /* add the event to the Future Event List (FEL) */
+        futureEventList.add(callInitiationEvent);
+        /* increase the number of generated calls */
+        generatedCalls += 1;
+    }
+
+    /* event handling routines */
+    while (futureEventList not empty) {
+        /* get an event from FEL */
+        event = futureEventList.dequeue();
+        if (event is CallInitiationEvent) {
+            /* handle Call Initiation event (Section 3) */
+            CallInitiationEventHandlingFunction(event);
+        }
+        else if (event is CallHandoverEvent) {
+            /* handle Call Handover event in (Section 4) */
+            CallHandoverEventHandlingFunction(event);
+        }
+        else {
+            /* handle Call Termination event (Section 5) */
+            CallTerminationEventHandlingFunction(event);
+        }
+    }
+
+    /* generate statistics report */
+    blockedCallsRate = numberOfBlockedCalls/totalNumberOfCalls;
+    droppedCallsRate = numberOfDroppedCalls/totalNumberOfCalls;
+    generateStatisticsReport(blockedCallsRate, droppedCallsRate);
+}
+
+
+/* Handle Call Initiation event */
+CallInitiationEventHandlingFunction(event) {
+    /* system clock synchronization */
+    clock = event.getTime();
+    /* get car speed */
+    carSpeed = event.getcarSpeed();
+    /* get current station */
+    currentStation = event.getCurrentStation();
+    /* get car position */
+    carPosition = event.getCarPosition();
+    /* get call duration */
+    callDuration = event.getCallDuration();
+    /* get car direction */
+    carDirection = event.getCarDirection();
+
+    /* check for an available channel for Call Initiation event */
+    numberOfAvailableChannels = currentStation.getNumberOfAvailableChannels();
+    /* the Call Initiation event is blocked if:
+    1. there is no available channel OR
+    2. there is only 1 available channel AND
+    the Fix Channel Allocation (FCA) scheme is Handover Reservation */
+    if ((numberOfAvailableChannels == 0) ||
+        (numberOfAvailableChannels == 1 && 
+        Station.isHandoverReservation() == true)) {
+            /* increase the number of blocked calls */
+            numberOfBlockedCalls += 1;
+            /* exit the handling function */
+            return;
+    }
+    else {
+        /* acquire a channel if available */
+        /* decrease the nunmber of available channels by 1 */
+        currentStation.numberOfAvailableChannels -= 1;
+    }
+
+    /* get the station id */
+    stationId = currentStation.getId();
+    /* calculate the distance to the next station in km */
+    distanceToNextStation = 2 - carPosition;
+    /* calculate the time to the next station in seconds */
+    timeToNextStation = (distanceToNextStation/carSpeed)*3600;
+    /* initialize next event */
+    nextEvent = null;
+
+    /* create Call Termination event if: */
+    /* 1. call duration is less than or equal to the time to next station */
+    if (callDuration <= timeToNextStation) {
+        /* calculate termination time */
+        terminationTime = clock + callDuration;
+        /* create Call Termination event */
+        nextEvent = new CallTerminationEvent(terminationTime, currentStation);
+    }
+    /* 2. call is in the last station, depending on the direction of the car */
+    else if ((carDirection == Direction.TO_20TH_STATION && stationId == 20)
+        || (carDirection == Direction.TO_1ST_STATION && stationId == 1)) {
+        /* calculate termination time */
+        terminationTime = clock + timeToNextStation;
+        /* create Call Termination event */
+        nextEvent = new CallTerminationEvent(terminationTime, currentStation);
+    }
+    /* create Call Handover event otherwise */
+    else {
+        /* calculate handover time*/
+        handoverTime = clock + timeToNextStation;
+        /* calculate call remaining duration */
+        callRemainingDuration = callDuration - timeToNextStation;
+        /* create Call Handover event */
+        nextEvent = new CallHandoverEvent(handoverTime, carSpeed)
+                                          currentStation,
+                                          callRemainingDuration, carDirection);
+    }
+        
+    /* add the event to the Future Event List (FEL) */
+    futureEventList.add(nextEvent);
+}
+
+
+/* Handle Call Handover event */
+CallHandoverEventHandlingFunction(event) {
+    /* system clock synchronization */
+    clock = event.getTime();
+    /* get car speed */
+    carSpeed = event.getcarSpeed();
+    /* get previous station */
+    previousStation = event.getPreviousStation();
+    /* get call duration */
+    callDuration = event.getCallDuration();
+    /* get car direction */
+    carDirection = event.getCarDirection();
+
+    /* get the current station using previous station and car direction */
+    currentStation = null;
+    previousStationIndex = previousStation.getId() - 1;
+    if (carDirection == Direction.TO_20TH_STATION) {
+        /* car direction is to 20th station */
+        /* increase the previous car station index by 1 */
+        currentStation = stations[previousStationIndex + 1];
+    }
+    else {
+        /* car direction is to 1st station */
+        /* decrease the previous car station index by 1 */
+        currentStation = stations[previousStationIndex - 1];
+    }
+    /* release the previously acquired channel */
+    previousStation.numberOfAvailableChannels += 1;
+    /* check for an available channel for Call Handover event */
+    numberOfAvailableChannels = currentStation.getNumberOfAvailableChannels();
+    /* the Call Handover event is dropped if there is no available channel 
+    regardless of the FCA scheme */
+    if (numberOfAvailableChannels == 0) {
+        /* increase the number of dropped calls */
+        numberOfDroppedCalls += 1;
+        /* exit the handling function */
+        return;
+    }
+    else {
+        /* acquire a channel if available */
+        /* decrease the nunmber of available channels by 1 */
+        currentStation.numberOfAvailableChannels -= 1;
+    }
+
+    /* get the station id */
+    stationId = currentStation.getId();
+    /* the distance to the next station in a handover event is alwyas 2 km */
+    distanceToNextStation = 2;
+    /* calculate the time to the next station in seconds */
+    timeToNextStation = (distanceToNextStation/carSpeed)*3600;
+    /* initialize next event */
+    nextEvent = null;
+
+    /* create Call Termination event if: */
+    /* 1. call duration is less than or equal to the time to next station */
+    if (callDuration <= timeToNextStation) {
+        /* calculate termination time */
+        terminationTime = clock + callDuration;
+        /* create Call Termination event */
+        nextEvent = new CallTerminationEvent(terminationTime, currentStation);
+    }
+    /* 2. call is in the last station, depending on the direction of the car */
+    else if ((carDirection == Direction.TO_20TH_STATION && stationId == 20)
+        || (carDirection == Direction.TO_1ST_STATION && stationId == 1)) {
+        /* calculate termination time */
+        terminationTime = clock + timeToNextStation;
+        /* create Call Termination event */
+        nextEvent = new CallTerminationEvent(terminationTime, currentStation);
+    }
+    /* create Call Handover event otherwise */
+    else {
+        /* calculate handover time*/
+        handoverTime = clock + timeToNextStation;
+        /* calculate call remaining duration */
+        callRemainingDuration = callDuration - timeToNextStation;
+        /* create Call Handover event */
+        nextEvent = new CallHandoverEvent(handoverTime, carSpeed)
+                                          currentStation,
+                                          callRemainingDuration, carDirection);
+    }
+        
+    /* add the event to the Future Event List (FEL) */
+    futureEventList.add(nextEvent);
+}
+
+
+/* Handle Call Termination event */
+CallTerminationEventHandlingFunction(event) {
+    /* system clock synchronization */
+    clock = event.getTime();
+    /* get the current station */
+    currentStation = event.getCurrentStation();
+    /* release the acquired channel */
+    currentStation.numberOfAvailableChannels += 1;
+}

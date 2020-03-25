@@ -1,0 +1,129 @@
+/* initializing system state variables */
+numberOfBlockedCalls = 0;               /* number of blocked calls */
+numberOfDroppedCalls = 0;               /* number of dropped calls */
+totalNumberOfCalls = 0;                 /* total nunmber of calls */
+Station[] stations = new Station[20];   /* a list of 20 stations */
+
+/* create 20 stations, each with 10 available channels */
+for i from 0 to 19 {
+    /* create a new station with id (i + 1) - from 1 to 20 */
+    stations[i] = new Station(i + 1);
+    /* set the number of available channels to 10 */
+    stations[i].setNumberOfAvailableChannels(10);
+}
+
+
+/* Call Process */
+CallProcess() {
+    /* generate Call Process attributes */
+
+    /* generate current (base) station */
+    /* can be any of the 20 stations with a probability distribution X */
+    currentStation = random(X, stations)
+    /* generate car direction*/
+    /* either to 1st station or to 20th station (equal probabilities) */
+    carDirection = random(Direction.TO_1ST_STATION, Direction.TO_20TH_STATION);
+    /* generate the car position using uniform distribution */
+    /* range of the position is from 0 to 2 km (station diameter) */
+    carPosition = uniform(0, 2);
+    /* generate the car speed with a probability distribution Y (km/h) */
+    carSpeed = random(Y);
+    /* generate the call duration with a probability distribution Z (sec) */
+    callDuration = random(Z);
+
+    /* check for an available channel */
+    numberOfAvailableChannels = currentStation.getNumberOfAvailableChannels();
+    /* the call initiation is blocked if there is no available channel */
+    /* FCA Scheme where there is no channel reservation for calls */
+    if (numberOfAvailableChannels == 0) {
+        /* increase the number of blocked calls */
+        numberOfBlockedCalls += 1;
+        /* exit the call process */
+        return;
+    }
+    else {
+        /* acquire a channel if available */
+        /* decrease the number of available channels by 1 */
+        currentStation.numberOfAvailableChannels -= 1;
+    }
+
+    /* get the station id */
+    stationId = currentStation.getId();
+    /* calculate the distance to the next station in km */
+    distanceToNextStation = 2 - carPosition;
+    /* calculate the time to the next station in seconds */
+    timeToNextStation = (distanceToNextStation/carSpeed)*3600;
+
+    /* while the call duration is greater than the time to next station */
+    /* AND the call is not in the last station (depending on car direction), */
+    /* there will be a call handover */
+    while ((callDuration > timeToNextStation) &&
+        !(carDirection == Direction.TO_20TH_STATION && stationId == 20) &&
+        !(carDirection == Direction.TO_1ST_STATION && stationId == 1)) {
+        /* hold while being on-call */
+        Hold(callDuration);
+
+        /* release the acquired channel before a call handover */
+        currentStation.numberOfAvailableChannels += 1;
+
+        /* get the next station using current station and car direction */
+        stationIndex = stationId - 1;
+        /* car direction is to 20th station */
+        if (carDirection == Direction.TO_20TH_STATION) {
+            /* increase the current car station index by 1 */
+            /* update the current station */
+            currentStation = stations[stationIndex + 1];
+        }
+        /* car direction is to 1st station */
+        else {
+            /* decrease the current car station index by 1 */
+            /* update the current station */
+            currentStation = stations[stationIndex - 1];
+        }
+
+        /* check for an available channel */
+        numberOfAvailableChannels= currentStation.getNumberOfAvailableChannels();
+        /* the call handover is dropped if there is no available channel */
+        /* FCA Scheme where there is no channel reservation fo calls */
+        if (numberOfAvailableChannels == 0) {
+            /* increase the number of dropped calls */
+            numberOfDroppedCalls += 1;
+            /* exit the call process */
+            return;
+        }
+        else {
+            /* acquire a channel if available */
+            /* decrease the nunmber of available channels by 1 */
+            currentStation.numberOfAvailableChannels -= 1;
+        }
+
+        /* get the station id */
+        stationId = currentStation.getId();
+        /* the distance to the next station in a call handover is alwyas 2 km */
+        distanceToNextStation = 2;
+        /* calculate the time to the next station in seconds */
+        timeToNextStation = (distanceToNextStation/carSpeed)*3600;
+        /* calculate remaining call duration */
+        callDuration = callDuration - timeToNextStation;
+    }
+
+    /* if the call duration is less than or equal to the time to next station */
+    if (callDuration <= timeToNextStation) {
+        /* hold while being on-call */
+        Hold(callDuration);
+        /* release the acquired channel before a call termination */
+        currentStation.numberOfAvailableChannels += 1;
+        /* exit the call process as call is ended */
+        return;
+    }
+    /* else the call is in the last station */
+    else {
+        /* hold while being in the last station */
+        Hold(timeToNextStation);
+        /* release the acquired channel before a call termination */
+        currentStation.numberOfAvailableChannels += 1;
+        /* exit the call process as the last station is reached */
+        return;
+    }
+}
+
