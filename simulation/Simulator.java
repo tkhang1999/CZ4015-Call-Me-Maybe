@@ -1,5 +1,6 @@
 package simulation;
 
+import java.util.Comparator;
 import java.util.PriorityQueue;
 
 /**
@@ -7,11 +8,22 @@ import java.util.PriorityQueue;
  */
 public class Simulator {
 
+    private static final int TOTAL_NUMBER_OF_CALLS = 10000;
+    private static final int WARM_UP_CALLS = 100;
+    private static final Comparator<Event> COMPARATOR = Comparator
+            .comparingDouble((Event e) -> e.getTime());
     private double clock;
+    private int generatedCalls;
+    private int numberOfBlockedCalls;
+    private int numberOfDroppedCalls;
     private PriorityQueue<Event> futureEventList;
-    private int generatedCalls = 0;
-    private int numberOfBlockedCalls = 0;
-    private int numberOfDroppedCalls = 0;
-    private int totalNumberOfCalls = 10000;
+
+    public Simulator() {
+        clock = 0;
+        generatedCalls = 0;
+        numberOfBlockedCalls = 0;
+        numberOfDroppedCalls = 0;
+        futureEventList = new PriorityQueue<>(1, COMPARATOR);
+    }
 
 }
