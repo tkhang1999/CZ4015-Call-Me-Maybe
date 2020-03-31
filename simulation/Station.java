@@ -5,21 +5,32 @@ package simulation;
  */
 public class Station {
 
+    private int stationId;
     private int numberOfAvailableChannels;
 
+    // Constructor
+    public Station(int stationId, int numberOfAvailableChannels) {
+        this.stationId = stationId;
+        this.numberOfAvailableChannels = numberOfAvailableChannels;
+    }
+
+    // Get the station id
+    public int getStationId() {
+        return stationId;
+    }
+
+    // Get the number of available channels
     public int getNumberOfAvailableChannels() {
         return numberOfAvailableChannels;
     }
 
-    public void setNumberOfAvailableChannels(int numberOfAvailableChannels) {
-        this.numberOfAvailableChannels = numberOfAvailableChannels;
-    }
-
-    public void acquireAnChannel() {
+    // Acquire an available channel in the station
+    public void acquireAnAvailableChannel() {
         this.numberOfAvailableChannels--;
     }
 
-    public void releaseAnChannel() {
+    // Release an acquired channel
+    public void releaseAnAcquiredChannel() {
         this.numberOfAvailableChannels++;
     }
 }

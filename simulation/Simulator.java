@@ -2,6 +2,9 @@ package simulation;
 
 import java.util.PriorityQueue;
 
+/**
+ * The class {@code Simulator} to run the simulation
+ */
 public class Simulator {
     private double clock;
     private PriorityQueue<Event> futureEventList;
