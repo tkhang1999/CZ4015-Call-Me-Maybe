@@ -8,6 +8,7 @@ public class CallTerminationEvent implements Event {
     private double time;
     private Station currentStation;
     
+    // Constructor
     public CallTerminationEvent(double time, Station currentStation) {
         this.time = time;
         this.currentStation = currentStation;
