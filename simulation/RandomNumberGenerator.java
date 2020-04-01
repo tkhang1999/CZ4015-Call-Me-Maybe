@@ -13,7 +13,7 @@ public class RandomNumberGenerator {
 
     // Get a random car direction
     public static Direction getCarDirection() {
-        int randomNumber = (int) Math.random();
+        int randomNumber = (int) (Math.random()*2);
 
         return (randomNumber == 0) ? Direction.TO_1ST_STATION : Direction.TO_20TH_STATION;
     }
