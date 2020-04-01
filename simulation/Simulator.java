@@ -54,10 +54,6 @@ public class Simulator {
 
     // Start the simulator
     public void start() {
-        System.out.println("----------------------------------------");
-        System.out.println("------------START-SIMULATION------------");
-        System.out.println("----------------------------------------");
-
         // Create 20 base stations, each with 10 available channels and given FCA Scheme
         for (int i = 0; i < 20; i++) {
             stations.add(new Station(i + 1, 10, IS_HANDOVER_RESERVATION));
@@ -80,6 +76,133 @@ public class Simulator {
         callInitiationRecords.remove();
 
         // Generate the first initiation record data
+        CallInitiationEvent event = generateCallInitiationEvent();
+        // Add the event to FEL
+        futureEventList.add(event);
+
+        // Start the event handling routine
+        handleEvent();
+    }
+
+    // Generate statistics report
+    public void generateStatisticsReport() {
+        double blockedCallsRate = numberOfBlockedCalls/TOTAL_NUMBER_OF_CALLS;
+        double droppedCallsRate = numberOfDroppedCalls/TOTAL_NUMBER_OF_CALLS;
+
+        System.out.println("Blocked Calls Rate: " + blockedCallsRate);
+        System.out.println("Dropped Calls Rate: " + droppedCallsRate);
+    }
+
+    // Event handling routine
+    private void handleEvent() {        
+        // Handle events from FEL
+        while (!futureEventList.isEmpty()) {
+            // Get the event from FEL
+            Event event = futureEventList.remove();
+            // Clock synchronization
+            clock = event.getTime();
+            // Handle each type of event
+            if (event instanceof CallInitiationEvent) {
+                handleCallInitiationEvent((CallInitiationEvent) event);
+            } else if (event instanceof CallHandoverEvent) {
+                handleCallHandoverEvent((CallHandoverEvent) event);
+            } else if (event instanceof CallTerminationEvent) {
+                handleCallTerminationEvent((CallTerminationEvent) event);
+            }
+        }
+    }
+
+    // Handle CallInitiationEvent
+    private void handleCallInitiationEvent(CallInitiationEvent event) {
+        // Clock synchronization
+        clock = event.getTime();
+        // Get current station
+        Station currentStation = event.getCurrentStation();
+        // Get car speed
+        double carSpeed = event.getCarSpeed();
+        // Get car position
+        double carPosition = event.getCarPosition();
+        // Get call duration
+        double callDuration = event.getCallDuration();
+        // Get car direction
+        Direction carDirection = event.getCarDirection();
+
+        // Check for an available channel for Call Initiation event
+        int numberOfAvailableChannels = currentStation.getNumberOfAvailableChannels();
+        /* The Call Initiation event is blocked if:
+        1. there is no available channel OR
+        2. there is only 1 available channel AND
+        the Fix Channel Allocation (FCA) scheme is Handover Reservation */
+        if (numberOfAvailableChannels == 0 || 
+           (numberOfAvailableChannels == 1 && 
+           currentStation.isHandoverReservation())) {
+            // Increase the number of blocked calls
+            numberOfBlockedCalls++;
+        } else {
+            // Acquire an available channel
+            currentStation.acquireAnAvailableChannel();
+
+            // Get the station id
+            int stationId = currentStation.getStationId();
+            // Calculate distance to next station (km)
+            double distanceToNextStation = 2 - carPosition;
+            // Calculate time to next station (sec)
+            double timeToNextStation = (distanceToNextStation/carSpeed)*3600;
+
+            // Initialize next event
+            Event nextEvent;
+            // Create Call Termination event if:
+            // 1. call duration is less than or equal to the time to next station
+            if (callDuration <= timeToNextStation) {
+                // Calculate termination time
+                double terminationTime = clock + callDuration;
+                // Create a Call Termination event
+                nextEvent = new CallTerminationEvent(terminationTime, currentStation);
+            } 
+            // 2. call is in the last station, depending on the direction of the car
+            else if ((carDirection == Direction.TO_20TH_STATION && stationId == 20)
+                    || (carDirection == Direction.TO_1ST_STATION && stationId == 1)) {
+                // Calculate termination time
+                double terminationTime = clock + timeToNextStation;
+                // Create a Call Termination event
+                nextEvent = new CallTerminationEvent(terminationTime, currentStation);
+            }
+            // create Call Handover event otherwise
+            else  {
+                // Calculate Handover time
+                double handoverTime = clock + timeToNextStation;
+                // Calculate call remaining duration
+                double callRemainingDuration = callDuration - timeToNextStation;
+                // Create a Call Handover event
+                nextEvent = new CallHandoverEvent(handoverTime, currentStation, 
+                                        carSpeed, callRemainingDuration, carDirection);
+            }
+
+            // Add the next event to FEL
+            futureEventList.add(nextEvent);
+        }
+
+        // Generate next Call Initiation event
+        if (generatedCalls < TOTAL_NUMBER_OF_CALLS) {
+            Event nextCallInitiationEvent = generateCallInitiationEvent();
+            // Add the event to FEL
+            futureEventList.add(nextCallInitiationEvent);
+        }
+    }
+
+    // Handle CallHandoverEvent
+    private void handleCallHandoverEvent(CallHandoverEvent event) {
+
+    }
+
+    // Handle CallTerminationEvent
+    private void handleCallTerminationEvent(CallTerminationEvent event) {
+
+    }
+
+    // Generate a Call Initiation event
+    private CallInitiationEvent generateCallInitiationEvent() {
+        // Generate the first initiation record data
         List<String> record = callInitiationRecords.remove();
         // Get the initiation time
         double time = Double.parseDouble(record.get(CSV_INDEX_TIME));
@@ -98,62 +221,10 @@ public class Simulator {
         // Generate the first call initiation event
         CallInitiationEvent event =  new CallInitiationEvent(time, currentStation, carSpeed,
                                                 carPosition, callDuration, carDirection);
-        // Add the event to FEL
-        futureEventList.add(event);
 
-        // Start the event handling routine
-        handleEvent();
+        // Increase the number of generated calls
+        generatedCalls++;
 
-        // Generate statistics report
-        generateStatisticsReport();
-    }
-
-    // Event handling routine
-    private void handleEvent() {
-        // Handle events from FEL
-        while (!futureEventList.isEmpty()) {
-            // Get the event from FEL
-            Event event = futureEventList.remove();
-            // Handle each type of event
-            if (event instanceof CallInitiationEvent) {
-                handleCallInitiationEvent((CallInitiationEvent) event);
-            } else if (event instanceof CallHandoverEvent) {
-                handleCallHandoverEvent((CallHandoverEvent) event);
-            } else if (event instanceof CallTerminationEvent) {
-                handleCallTerminationEvent((CallTerminationEvent) event);
-            }
-        }
-    }
-
-    // Handle CallInitiationEvent
-    private void handleCallInitiationEvent(CallInitiationEvent event) {
-
-    }
-
-    // Handle CallHandoverEvent
-    private void handleCallHandoverEvent(CallHandoverEvent event) {
-
-    }
-
-    // Handle CallTerminationEvent
-    private void handleCallTerminationEvent(CallTerminationEvent event) {
-
-    }
-
-    // Generate statistics report
-    private void generateStatisticsReport() {
-        double blockedCallsRate = numberOfBlockedCalls/TOTAL_NUMBER_OF_CALLS;
-        double droppedCallsRate = numberOfDroppedCalls/TOTAL_NUMBER_OF_CALLS;
-
-        System.out.println("----------------------------------------");
-        System.out.println("---------------STATISTICS---------------");
-        System.out.println("----------------------------------------");
-
-        System.out.println("Blocked Calls Rate: " + blockedCallsRate);
-        System.out.println("Dropped Calls Rate: " + droppedCallsRate);
-
-        System.out.println("----------------------------------------");
-        System.out.println("-------------END-SIMULATION-------------");
-        System.out.println("----------------------------------------");
+        return event;
     }
 }
