@@ -54,6 +54,10 @@ public class Simulator {
 
     // Start the simulator
     public void start() {
+        System.out.println("----------------------------------------");
+        System.out.println("------------START-SIMULATION------------");
+        System.out.println("----------------------------------------");
+
         // Create 20 base stations, each with 10 available channels and given FCA Scheme
         for (int i = 0; i < 20; i++) {
             stations.add(new Station(i + 1, 10, IS_HANDOVER_RESERVATION));
@@ -99,6 +103,9 @@ public class Simulator {
 
         // Start the event handling routine
         handleEvent();
+
+        // Generate statistics report
+        generateStatisticsReport();
     }
 
     // Event handling routine
@@ -131,5 +138,22 @@ public class Simulator {
     // Handle CallTerminationEvent
     private void handleCallTerminationEvent(CallTerminationEvent event) {
 
+    }
+
+    // Generate statistics report
+    private void generateStatisticsReport() {
+        double blockedCallsRate = numberOfBlockedCalls/TOTAL_NUMBER_OF_CALLS;
+        double droppedCallsRate = numberOfDroppedCalls/TOTAL_NUMBER_OF_CALLS;
+
+        System.out.println("----------------------------------------");
+        System.out.println("---------------STATISTICS---------------");
+        System.out.println("----------------------------------------");
+
+        System.out.println("Blocked Calls Rate: " + blockedCallsRate);
+        System.out.println("Dropped Calls Rate: " + droppedCallsRate);
+
+        System.out.println("----------------------------------------");
+        System.out.println("-------------END-SIMULATION-------------");
+        System.out.println("----------------------------------------");
     }
 }
