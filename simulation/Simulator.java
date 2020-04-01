@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -20,6 +21,7 @@ public class Simulator {
 
     private static final int TOTAL_NUMBER_OF_CALLS = 10000;
     private static final int WARM_UP_CALLS = 100;
+    private static final int SCALE = 5;
     private static final int NUMBER_OF_AVAILABLE_CHANNELS = 10;
     private static final boolean IS_HANDOVER_RESERVATION = true;
     private static final String CSV_FILE = "PCS_TEST_DETERMINSTIC_19S2.csv";
@@ -86,9 +88,11 @@ public class Simulator {
     // Generate statistics report
     public void generateStatisticsReport() {
         BigDecimal blockedCallsRate = BigDecimal.valueOf(numberOfBlockedCalls)
-                            .divide(BigDecimal.valueOf(TOTAL_NUMBER_OF_CALLS));
+                    .divide(BigDecimal.valueOf(TOTAL_NUMBER_OF_CALLS - WARM_UP_CALLS),
+                            SCALE, RoundingMode.HALF_UP);
         BigDecimal droppedCallsRate = BigDecimal.valueOf(numberOfDroppedCalls)
-                            .divide(BigDecimal.valueOf(TOTAL_NUMBER_OF_CALLS));
+                    .divide(BigDecimal.valueOf(TOTAL_NUMBER_OF_CALLS - WARM_UP_CALLS),
+                            SCALE, RoundingMode.HALF_UP);
 
         System.out.println("Number of Blocked Calls: " + numberOfBlockedCalls);
         System.out.println("Number of Dropped Calls: " + numberOfDroppedCalls);
@@ -112,6 +116,12 @@ public class Simulator {
                 handleCallHandoverEvent((CallHandoverEvent) event);
             } else if (event instanceof CallTerminationEvent) {
                 handleCallTerminationEvent((CallTerminationEvent) event);
+            }
+
+            // Reset after the warm up period
+            if (generatedCalls == WARM_UP_CALLS) {
+                numberOfBlockedCalls = 0;
+                numberOfDroppedCalls = 0;
             }
         }
     }
