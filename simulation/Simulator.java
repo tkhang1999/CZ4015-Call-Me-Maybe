@@ -26,6 +26,12 @@ public class Simulator {
     private static final String COMMA_DELIMITER = ",";
     private static final Comparator<Event> COMPARATOR = Comparator
             .comparingDouble((Event e) -> e.getTime());
+    // Constants to process CSV data
+    private static final int CSV_INDEX_TIME = 1;
+    private static final int CSV_INDEX_STATION = 2;
+    private static final int CSV_INDEX_CALL_DURATION = 3;
+    private static final int CSV_INDEX_CAR_SPEED = 4;
+
 
     private double clock;
     private int generatedCalls;
@@ -69,5 +75,28 @@ public class Simulator {
         // Remove the dummy header in the CSV file
         callInitiationRecords.remove();
 
+        // Generate the first initiation record data
+        List<String> record = callInitiationRecords.remove();
+        // Get the initiation time
+        double time = Double.parseDouble(record.get(CSV_INDEX_TIME));
+        // Get the current station
+        int stationId = Integer.parseInt(record.get(CSV_INDEX_STATION));
+        Station currentStation = stations.get(stationId - 1);
+        // Get the car speed
+        double carSpeed = Double.parseDouble(record.get(CSV_INDEX_CAR_SPEED));
+        // Get the car position
+        double carPosition = RandomNumberGenerator.getCarPosition();
+        // Get the call duration
+        double callDuration = Double.parseDouble(record.get(CSV_INDEX_CALL_DURATION));
+        // Get the car direction
+        Direction carDirection = RandomNumberGenerator.getCarDirection();
+        
+        // Generate the first call initiation event
+        CallInitiationEvent event =  new CallInitiationEvent(time, currentStation, carSpeed,
+                                                carPosition, callDuration, carDirection);
+        // Add the event to FEL
+        futureEventList.add(event);
+
+        System.out.println(futureEventList);
     }
 }
