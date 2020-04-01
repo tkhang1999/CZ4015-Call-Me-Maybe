@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -24,8 +25,7 @@ public class Simulator {
     private static final String CSV_FILE = "PCS_TEST_DETERMINSTIC_19S2.csv";
     private static final String FILE_LOCATION = "C:\\Users\\Dell\\Documents\\Simulation\\simulation\\";
     private static final String COMMA_DELIMITER = ",";
-    private static final Comparator<Event> COMPARATOR = Comparator
-            .comparingDouble((Event e) -> e.getTime());
+    private static final Comparator<Event> COMPARATOR = Comparator.comparing(Event::getTime);
     // Constants to process CSV data
     private static final int CSV_INDEX_TIME = 1;
     private static final int CSV_INDEX_STATION = 2;
@@ -55,7 +55,7 @@ public class Simulator {
     public void start() {
         // Create 20 base stations, each with 10 available channels and given FCA Scheme
         for (int i = 0; i < 20; i++) {
-            stations.add(new Station(i + 1, 10, IS_HANDOVER_RESERVATION));
+            stations.add(new Station(i + 1, NUMBER_OF_AVAILABLE_CHANNELS, IS_HANDOVER_RESERVATION));
         }
 
         // Read the CSV file
@@ -85,11 +85,15 @@ public class Simulator {
 
     // Generate statistics report
     public void generateStatisticsReport() {
-        double blockedCallsRate = numberOfBlockedCalls/TOTAL_NUMBER_OF_CALLS;
-        double droppedCallsRate = numberOfDroppedCalls/TOTAL_NUMBER_OF_CALLS;
+        BigDecimal blockedCallsRate = BigDecimal.valueOf(numberOfBlockedCalls)
+                            .divide(BigDecimal.valueOf(TOTAL_NUMBER_OF_CALLS));
+        BigDecimal droppedCallsRate = BigDecimal.valueOf(numberOfDroppedCalls)
+                            .divide(BigDecimal.valueOf(TOTAL_NUMBER_OF_CALLS));
 
-        System.out.println("Blocked Calls Rate: " + blockedCallsRate);
-        System.out.println("Dropped Calls Rate: " + droppedCallsRate);
+        System.out.println("Number of Blocked Calls: " + numberOfBlockedCalls);
+        System.out.println("Number of Dropped Calls: " + numberOfDroppedCalls);
+        System.out.println("Blocked Calls Rate (%): " + blockedCallsRate);
+        System.out.println("Dropped Calls Rate (%): " + droppedCallsRate);
     }
 
     // Event handling routine
@@ -100,6 +104,7 @@ public class Simulator {
             Event event = futureEventList.remove();
             // Clock synchronization
             clock = event.getTime();
+            // System.out.println(clock);
             // Handle each type of event
             if (event instanceof CallInitiationEvent) {
                 handleCallInitiationEvent((CallInitiationEvent) event);
