@@ -267,7 +267,12 @@ public class Simulator {
 
     // Handle CallTerminationEvent
     private void handleCallTerminationEvent(CallTerminationEvent event) {
-
+        // Clock synchronization
+        clock = event.getTime();
+        // Get current station
+        Station currentStation = event.getCurrentStation();
+        // Release the previously acquired channel
+        currentStation.releaseAnAcquiredChannel();
     }
 
     // Generate a Call Initiation event
