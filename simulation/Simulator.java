@@ -32,7 +32,6 @@ public class Simulator {
     private static final int CSV_INDEX_CALL_DURATION = 3;
     private static final int CSV_INDEX_CAR_SPEED = 4;
 
-
     private double clock;
     private int generatedCalls;
     private int numberOfBlockedCalls;
@@ -192,7 +191,78 @@ public class Simulator {
 
     // Handle CallHandoverEvent
     private void handleCallHandoverEvent(CallHandoverEvent event) {
+        // Clock synchronization
+        clock = event.getTime();
+        // Get current station
+        Station currentStation = event.getCurrentStation();
+        // Get car speed
+        double carSpeed = event.getCarSpeed();
+        // Get call duration
+        double callDuration = event.getCallDuration();
+        // Get car direction
+        Direction carDirection = event.getCarDirection();
 
+        // Release the previously acquired channel
+        currentStation.releaseAnAcquiredChannel();
+        // Update the current station
+        if (carDirection == Direction.TO_20TH_STATION) {
+            currentStation = stations.get(currentStation.getStationId());
+        } else {
+            currentStation = stations.get(currentStation.getStationId() - 2);
+        }
+
+        // Check for an available channel for Call Initiation event
+        int numberOfAvailableChannels = currentStation.getNumberOfAvailableChannels();
+        // The Call Handover event is dropped if there is no available channel 
+        // regardless of the FCA scheme
+        if (numberOfAvailableChannels == 0) {
+            // Increase the number of dropped calls
+            numberOfDroppedCalls++;
+            // Exit the handling function
+            return;
+        } else {
+            // Acquire an available channel
+            currentStation.acquireAnAvailableChannel();
+        }
+
+        // Get the station id
+        int stationId = currentStation.getStationId();
+        // Distance to the next station in a handover event is alwyas 2 km
+        double distanceToNextStation = 2;
+        // Calculate time to next station (sec)
+        double timeToNextStation = (distanceToNextStation/carSpeed)*3600;
+
+        // Initialize next event
+        Event nextEvent;
+        // Create Call Termination event if:
+        // 1. call duration is less than or equal to the time to next station
+        if (callDuration <= timeToNextStation) {
+            // Calculate termination time
+            double terminationTime = clock + callDuration;
+            // Create a Call Termination event
+            nextEvent = new CallTerminationEvent(terminationTime, currentStation);
+        } 
+        // 2. call is in the last station, depending on the direction of the car
+        else if ((carDirection == Direction.TO_20TH_STATION && stationId == 20)
+                || (carDirection == Direction.TO_1ST_STATION && stationId == 1)) {
+            // Calculate termination time
+            double terminationTime = clock + timeToNextStation;
+            // Create a Call Termination event
+            nextEvent = new CallTerminationEvent(terminationTime, currentStation);
+        }
+        // create Call Handover event otherwise
+        else  {
+            // Calculate Handover time
+            double handoverTime = clock + timeToNextStation;
+            // Calculate call remaining duration
+            double callRemainingDuration = callDuration - timeToNextStation;
+            // Create a Call Handover event
+            nextEvent = new CallHandoverEvent(handoverTime, currentStation, 
+                                    carSpeed, callRemainingDuration, carDirection);
+        }
+
+        // Add the next event to FEL
+        futureEventList.add(nextEvent);
     }
 
     // Handle CallTerminationEvent
