@@ -97,6 +97,39 @@ public class Simulator {
         // Add the event to FEL
         futureEventList.add(event);
 
-        System.out.println(futureEventList);
+        // Start the event handling routine
+        handleEvent();
+    }
+
+    // Event handling routine
+    private void handleEvent() {
+        // Handle events from FEL
+        while (!futureEventList.isEmpty()) {
+            // Get the event from FEL
+            Event event = futureEventList.remove();
+            // Handle each type of event
+            if (event instanceof CallInitiationEvent) {
+                handleCallInitiationEvent((CallInitiationEvent) event);
+            } else if (event instanceof CallHandoverEvent) {
+                handleCallHandoverEvent((CallHandoverEvent) event);
+            } else if (event instanceof CallTerminationEvent) {
+                handleCallTerminationEvent((CallTerminationEvent) event);
+            }
+        }
+    }
+
+    // Handle CallInitiationEvent
+    private void handleCallInitiationEvent(CallInitiationEvent event) {
+
+    }
+
+    // Handle CallHandoverEvent
+    private void handleCallHandoverEvent(CallHandoverEvent event) {
+
+    }
+
+    // Handle CallTerminationEvent
+    private void handleCallTerminationEvent(CallTerminationEvent event) {
+
     }
 }
