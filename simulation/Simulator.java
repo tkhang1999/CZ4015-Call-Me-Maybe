@@ -23,7 +23,6 @@ public class Simulator {
     private static final int WARM_UP_CALLS = 100;
     private static final int SCALE = 5;
     private static final int NUMBER_OF_AVAILABLE_CHANNELS = 10;
-    private static final boolean IS_HANDOVER_RESERVATION = true;
     private static final String CSV_FILE = "PCS_TEST_DETERMINSTIC_19S2.csv";
     private static final String FILE_LOCATION = "C:\\Users\\Dell\\Documents\\Simulation\\simulation\\";
     private static final String COMMA_DELIMITER = ",";
@@ -35,6 +34,7 @@ public class Simulator {
     private static final int CSV_INDEX_CAR_SPEED = 4;
 
     private double clock;
+    private boolean isHandoverReservation;
     private int generatedCalls;
     private int numberOfBlockedCalls;
     private int numberOfDroppedCalls;
@@ -43,25 +43,26 @@ public class Simulator {
     private Queue<List<String>> callInitiationRecords;
 
     // Constructor
-    public Simulator() {
-        clock = 0;
-        generatedCalls = 0;
-        numberOfBlockedCalls = 0;
-        numberOfDroppedCalls = 0;
-        futureEventList = new PriorityQueue<>(1, COMPARATOR);
-        stations = new ArrayList<>();
-        callInitiationRecords = new LinkedList<>();
+    public Simulator(boolean isHandoverReservation) {
+        this.clock = 0;
+        this.isHandoverReservation = isHandoverReservation;
+        this.generatedCalls = 0;
+        this.numberOfBlockedCalls = 0;
+        this.numberOfDroppedCalls = 0;
+        this.futureEventList = new PriorityQueue<>(1, COMPARATOR);
+        this.stations = new ArrayList<>();
+        this.callInitiationRecords = new LinkedList<>();
     }
 
     // Start the simulator
     public void start() {
         // Print simulation condition (e.g FCA Scheme, warm up calls)
-        System.out.println("FCA Scheme: " + (IS_HANDOVER_RESERVATION ? "HANDOVER RESERVATION" : "NO RESERVATION"));
+        System.out.println("FCA Scheme: " + (isHandoverReservation ? "HANDOVER RESERVATION" : "NO RESERVATION"));
         System.out.println("Number of Warm Up Calls: " + WARM_UP_CALLS);
 
         // Create 20 base stations, each with 10 available channels and given FCA Scheme
         for (int i = 0; i < 20; i++) {
-            stations.add(new Station(i + 1, NUMBER_OF_AVAILABLE_CHANNELS, IS_HANDOVER_RESERVATION));
+            stations.add(new Station(i + 1, NUMBER_OF_AVAILABLE_CHANNELS, isHandoverReservation));
         }
 
         // Read the CSV file
@@ -99,9 +100,9 @@ public class Simulator {
                     .divide(BigDecimal.valueOf(totalNumberOfCalls),
                             SCALE, RoundingMode.HALF_UP);
 
+        System.out.println("Total number of Calls (after Warm Up period): " + totalNumberOfCalls);
         System.out.println("Number of Blocked Calls: " + numberOfBlockedCalls);
         System.out.println("Number of Dropped Calls: " + numberOfDroppedCalls);
-        System.out.println("Total number of Calls (after Warm Up period): " + totalNumberOfCalls);
         System.out.println("Blocked Calls Rate (%): " + blockedCallsRate);
         System.out.println("Dropped Calls Rate (%): " + droppedCallsRate);
     }
