@@ -19,7 +19,7 @@ import java.util.Queue;
  */
 public class Simulator {
 
-    private static final int TOTAL_NUMBER_OF_CALLS = 10000;
+    // private static final int TOTAL_NUMBER_OF_CALLS = 10000;
     private static final int WARM_UP_CALLS = 100;
     private static final int SCALE = 5;
     private static final int NUMBER_OF_AVAILABLE_CHANNELS = 10;
@@ -55,6 +55,10 @@ public class Simulator {
 
     // Start the simulator
     public void start() {
+        // Print simulation condition (e.g FCA Scheme, warm up calls)
+        System.out.println("FCA Scheme: " + (IS_HANDOVER_RESERVATION ? "HANDOVER RESERVATION" : "NO RESERVATION"));
+        System.out.println("Number of Warm Up Calls: " + WARM_UP_CALLS);
+
         // Create 20 base stations, each with 10 available channels and given FCA Scheme
         for (int i = 0; i < 20; i++) {
             stations.add(new Station(i + 1, NUMBER_OF_AVAILABLE_CHANNELS, IS_HANDOVER_RESERVATION));
@@ -87,15 +91,17 @@ public class Simulator {
 
     // Generate statistics report
     public void generateStatisticsReport() {
+        int totalNumberOfCalls = generatedCalls - WARM_UP_CALLS;
         BigDecimal blockedCallsRate = BigDecimal.valueOf(numberOfBlockedCalls)
-                    .divide(BigDecimal.valueOf(TOTAL_NUMBER_OF_CALLS - WARM_UP_CALLS),
+                    .divide(BigDecimal.valueOf(totalNumberOfCalls),
                             SCALE, RoundingMode.HALF_UP);
         BigDecimal droppedCallsRate = BigDecimal.valueOf(numberOfDroppedCalls)
-                    .divide(BigDecimal.valueOf(TOTAL_NUMBER_OF_CALLS - WARM_UP_CALLS),
+                    .divide(BigDecimal.valueOf(totalNumberOfCalls),
                             SCALE, RoundingMode.HALF_UP);
 
         System.out.println("Number of Blocked Calls: " + numberOfBlockedCalls);
         System.out.println("Number of Dropped Calls: " + numberOfDroppedCalls);
+        System.out.println("Total number of Calls (after Warm Up period): " + totalNumberOfCalls);
         System.out.println("Blocked Calls Rate (%): " + blockedCallsRate);
         System.out.println("Dropped Calls Rate (%): " + droppedCallsRate);
     }
@@ -197,7 +203,7 @@ public class Simulator {
         }
 
         // Generate next Call Initiation event
-        if (generatedCalls < TOTAL_NUMBER_OF_CALLS) {
+        if (!callInitiationRecords.isEmpty()) {
             Event nextCallInitiationEvent = generateCallInitiationEvent();
             // Add the event to FEL
             futureEventList.add(nextCallInitiationEvent);
