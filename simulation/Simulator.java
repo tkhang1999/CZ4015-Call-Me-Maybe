@@ -56,10 +56,6 @@ public class Simulator {
 
     // Start the simulator
     public void start() {
-        // Print simulation condition (e.g FCA Scheme, warm up calls)
-        System.out.println("FCA Scheme: " + (isHandoverReservation ? "HANDOVER RESERVATION" : "NO RESERVATION"));
-        System.out.println("Number of Warm Up Calls: " + WARM_UP_CALLS);
-
         // Create 20 base stations, each with 10 available channels and given FCA Scheme
         for (int i = 0; i < 20; i++) {
             stations.add(new Station(i + 1, NUMBER_OF_AVAILABLE_CHANNELS, isHandoverReservation));
@@ -100,6 +96,9 @@ public class Simulator {
                     .divide(BigDecimal.valueOf(totalNumberOfCalls),
                             SCALE, RoundingMode.HALF_UP);
 
+        // Print statistics
+        System.out.println("FCA Scheme: " + (isHandoverReservation ? "HANDOVER RESERVATION" : "NO RESERVATION"));
+        System.out.println("Number of Warm Up Calls: " + WARM_UP_CALLS);
         System.out.println("Total number of Calls (after Warm Up period): " + totalNumberOfCalls);
         System.out.println("Number of Blocked Calls: " + numberOfBlockedCalls);
         System.out.println("Number of Dropped Calls: " + numberOfDroppedCalls);
