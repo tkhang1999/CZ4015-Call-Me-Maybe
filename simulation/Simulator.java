@@ -24,7 +24,7 @@ public class Simulator {
     private static final int SCALE = 5;
     private static final int NUMBER_OF_AVAILABLE_CHANNELS = 10;
     private static final String CSV_FILE = "PCS_TEST_DETERMINSTIC_19S2.csv";
-    private static final String FILE_LOCATION = "C:\\Users\\Dell\\Documents\\Simulation\\simulation\\";
+    private static final String FILE_LOCATION = "C:\\Users\\Dell\\Documents\\Simulation\\";
     private static final String COMMA_DELIMITER = ",";
     private static final Comparator<Event> COMPARATOR = Comparator.comparing(Event::getTime);
     // Constants to process CSV data
