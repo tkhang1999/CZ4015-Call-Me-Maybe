@@ -15,8 +15,8 @@ import java.util.stream.Collectors;
  */
 public class Simulator {
 
-    private static final int TOTAL_NUMBER_OF_CALLS = 10000;
-    private static final int WARM_UP_CALLS = 0;
+    private static final int TOTAL_NUMBER_OF_CALLS = 250000;
+    private static final int WARM_UP_CALLS = 50000;
     private static final int SCALE = 5;
     private static final int NUMBER_OF_AVAILABLE_CHANNELS = 10;
     private static final Comparator<Event> COMPARATOR = Comparator.comparing(Event::getTime);
@@ -62,7 +62,7 @@ public class Simulator {
 
     // Generate statistics report
     public void generateStatisticsReport() {
-        int totalNumberOfCalls = generatedCalls - WARM_UP_CALLS;
+        int totalNumberOfCalls = TOTAL_NUMBER_OF_CALLS - WARM_UP_CALLS;
         BigDecimal blockedCallsRate = BigDecimal.valueOf(numberOfBlockedCalls)
                     .divide(BigDecimal.valueOf(totalNumberOfCalls),
                             SCALE, RoundingMode.HALF_UP);
