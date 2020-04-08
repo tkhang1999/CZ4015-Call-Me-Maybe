@@ -1,11 +1,14 @@
 package simulation;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.stream.Collectors;
 
 /**
  * The class {@code Simulator} to run the simulation
@@ -13,10 +16,11 @@ import java.util.PriorityQueue;
 public class Simulator {
 
     private static final int TOTAL_NUMBER_OF_CALLS = 10000;
-    private static final int WARM_UP_CALLS = 100;
+    private static final int WARM_UP_CALLS = 0;
     private static final int SCALE = 5;
     private static final int NUMBER_OF_AVAILABLE_CHANNELS = 10;
     private static final Comparator<Event> COMPARATOR = Comparator.comparing(Event::getTime);
+    private static final String OUTPUT_FILE = "C:\\Users\\Dell\\Documents\\Simulation\\output.csv";
 
     private double clock;
     private boolean isHandoverReservation;
@@ -25,6 +29,7 @@ public class Simulator {
     private int numberOfDroppedCalls;
     private PriorityQueue<Event> futureEventList;
     private List<Station> stations;
+    private List<List<String>> statistics;
 
     // Constructor
     public Simulator(boolean isHandoverReservation) {
@@ -35,6 +40,7 @@ public class Simulator {
         this.numberOfDroppedCalls = 0;
         this.futureEventList = new PriorityQueue<>(1, COMPARATOR);
         this.stations = new ArrayList<>();
+        this.statistics = new ArrayList<>();
     }
 
     // Start the simulator
@@ -48,7 +54,8 @@ public class Simulator {
         CallInitiationEvent event = generateCallInitiationEvent();
         // Add the event to FEL
         futureEventList.add(event);
-
+        // Calculate the statistic when a call is generated
+        calculateStatistic();
         // Start the event handling routine
         handleEvent();
     }
@@ -71,6 +78,20 @@ public class Simulator {
         System.out.println("Number of Dropped Calls: " + numberOfDroppedCalls);
         System.out.println("Blocked Calls Rate (%): " + blockedCallsRate);
         System.out.println("Dropped Calls Rate (%): " + droppedCallsRate);
+
+        // Write the statistics to output file
+        try {
+            FileWriter writer = new FileWriter(OUTPUT_FILE, true);
+
+            for (List<String> statistic : statistics) {
+                String collect = statistic.stream().collect(Collectors.joining(","));
+                writer.write(collect);
+                writer.write("\n");
+            }
+            writer.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
     }
 
     // Event handling routine
@@ -174,6 +195,8 @@ public class Simulator {
             Event nextCallInitiationEvent = generateCallInitiationEvent();
             // Add the event to FEL
             futureEventList.add(nextCallInitiationEvent);
+            // Calculate the statistic when a call is generated
+            calculateStatistic();
         }
     }
 
@@ -287,5 +310,21 @@ public class Simulator {
         generatedCalls++;
 
         return event;
+    }
+
+    // Calculate statistic and add to the statistics list
+    private void calculateStatistic() {            
+        List<String> statistic = new ArrayList<>();
+        BigDecimal blockedCallsRate = BigDecimal.valueOf(numberOfBlockedCalls)
+                    .divide(BigDecimal.valueOf(generatedCalls),
+                            SCALE, RoundingMode.HALF_UP);
+        BigDecimal droppedCallsRate = BigDecimal.valueOf(numberOfDroppedCalls)
+                    .divide(BigDecimal.valueOf(generatedCalls),
+                            SCALE, RoundingMode.HALF_UP);
+
+        statistic.add(blockedCallsRate.toString());
+        statistic.add(droppedCallsRate.toString());
+
+        statistics.add(statistic);
     }
 }
