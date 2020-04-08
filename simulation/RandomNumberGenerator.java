@@ -13,59 +13,52 @@ public class RandomNumberGenerator {
     private static final double CAR_SPEED_MEAN = 120.072095;
     private static final double CAR_SPEED_VARIANCE = 81.335230;
 
+    private static Random randomInterArrivalTime = new Random();
+    private static Random randomBaseStation = new Random();
+    private static Random randomCarSpeed = new Random();
+    private static Random randomCarPosition = new Random();
+    private static Random randomCallDuration = new Random();
+    private static Random randomCarDirection = new Random();
+
     // Get an exponential random number for inter-arrival time
     public static double getInterArrivalTime() {
+        double u = randomInterArrivalTime.nextDouble();
 
-        return getExponentialRandomNumber(INTER_ARRIVAL_TIME_MEAN);
+        return (-INTER_ARRIVAL_TIME_MEAN)*Math.log(1 - u);
     }
 
     // Get an uniform random number for base station
     public static int getBaseStation() {
+        double u = randomBaseStation.nextDouble();
         
-        return (int) Math.round(getUniformRandomNumber(1, 20));
+        return (int) Math.round(u*(20 - 1) + 1);
     }
 
     // Get a normal random number for car speed
     public static double getCarSpeed() {
+        double random = randomCarSpeed.nextGaussian();
 
-        return getNormalRandomNumber(CAR_SPEED_MEAN, Math.sqrt(CAR_SPEED_VARIANCE));
+        return CAR_SPEED_MEAN + random*Math.sqrt(CAR_SPEED_VARIANCE);
     }
 
     // Get an uniform random number for the car position
     public static double getCarPosition() {
+        double u = randomCarPosition.nextDouble();
 
-        return getUniformRandomNumber(0, 2); 
+        return (int) Math.round(u*(2 - 0) + 0);
     }
 
     // Get an exponential random number for call duration
     public static double getCallDuration() {
+        double u = randomCallDuration.nextDouble();
         
-        return getExponentialRandomNumber(SHIFTED_CALL_DURATION_MEAN) + SHIFTED_VALUE;
+        return (-SHIFTED_CALL_DURATION_MEAN)*Math.log(1 - u) + SHIFTED_VALUE;
     }
 
     // Get a random car direction
     public static Direction getCarDirection() {
-        int randomNumber = (int) (Math.random()*2);
+        boolean random = randomCarDirection.nextBoolean();
 
-        return (randomNumber == 0) ? Direction.TO_1ST_STATION : Direction.TO_20TH_STATION;
-    }
-
-    private static double getUniformRandomNumber(double a, double b) {
-        double u = Math.random();
-        double randomNumber = u*(b - a) + a;
-
-        return randomNumber;
-    }
-
-    private static double getExponentialRandomNumber(double beta) {
-        double u = Math.random();
-
-        return -beta*Math.log(1 - u);
-    }
-
-    private static double getNormalRandomNumber(double mu, double sigma) {
-        Random random = new Random();
-
-        return mu + random.nextGaussian()*sigma;
+        return random ? Direction.TO_1ST_STATION : Direction.TO_20TH_STATION;
     }
 }
