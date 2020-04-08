@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
-import java.util.stream.Collectors;
 
 /**
  * The class {@code Simulator} to run the simulation
@@ -65,10 +64,12 @@ public class Simulator {
         int totalNumberOfCalls = TOTAL_NUMBER_OF_CALLS - WARM_UP_CALLS;
         BigDecimal blockedCallsRate = BigDecimal.valueOf(numberOfBlockedCalls)
                     .divide(BigDecimal.valueOf(totalNumberOfCalls),
-                            SCALE, RoundingMode.HALF_UP);
+                            SCALE, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
         BigDecimal droppedCallsRate = BigDecimal.valueOf(numberOfDroppedCalls)
                     .divide(BigDecimal.valueOf(totalNumberOfCalls),
-                            SCALE, RoundingMode.HALF_UP);
+                            SCALE, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
 
         // Print statistics
         System.out.println("FCA Scheme: " + (isHandoverReservation ? "HANDOVER RESERVATION" : "NO RESERVATION"));
@@ -83,11 +84,8 @@ public class Simulator {
         try {
             FileWriter writer = new FileWriter(OUTPUT_FILE, true);
 
-            for (List<String> statistic : statistics) {
-                String collect = statistic.stream().collect(Collectors.joining(","));
-                writer.write(collect);
-                writer.write("\n");
-            }
+            writer.write(blockedCallsRate.toString() + ',' + droppedCallsRate.toString());
+            writer.write("\n");
             writer.close();
         } catch (IOException ioe) {
             ioe.printStackTrace();
