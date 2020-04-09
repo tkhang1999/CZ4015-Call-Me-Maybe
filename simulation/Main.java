@@ -14,7 +14,7 @@ public class Main {
 
         // Start the simulation with no reservation
         for (int i = 0; i < 1; i++) {
-            Simulator simulatorNoReservation = new Simulator(false);
+            Simulator simulatorNoReservation = new Simulator(0);
             simulatorNoReservation.start();
             simulatorNoReservation.generateStatisticsReport();
         }
@@ -26,7 +26,7 @@ public class Main {
 
         // Start the simulation with handover reservation
         for (int i = 0; i < 1; i++) {
-            Simulator simulatorHandoverReservation = new Simulator(true);
+            Simulator simulatorHandoverReservation = new Simulator(1);
             simulatorHandoverReservation.start();
             simulatorHandoverReservation.generateStatisticsReport();
         }

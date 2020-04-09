@@ -7,13 +7,13 @@ public class Station {
 
     private int stationId;
     private int numberOfAvailableChannels;
-    private boolean handoverReservation;
+    private int numberOfReservations;
 
     // Constructor
-    public Station(int stationId, int numberOfAvailableChannels, boolean handoverReservation) {
+    public Station(int stationId, int numberOfAvailableChannels, int numberOfReservations) {
         this.stationId = stationId;
         this.numberOfAvailableChannels = numberOfAvailableChannels;
-        this.handoverReservation = handoverReservation;
+        this.numberOfReservations = numberOfReservations;
     }
 
     // Get the station id
@@ -27,8 +27,8 @@ public class Station {
     }
 
     // Get the boolean value for call handover reservation
-    public boolean isHandoverReservation() {
-        return handoverReservation;
+    public int getNumberOfReservations() {
+        return numberOfReservations;
     }
 
     // Acquire an available channel in the station

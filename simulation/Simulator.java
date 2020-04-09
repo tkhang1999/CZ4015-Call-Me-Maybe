@@ -23,7 +23,7 @@ public class Simulator {
     private static final String OUTPUT_FILE = "C:\\Users\\Dell\\Documents\\Simulation\\output.csv";
 
     private double clock;
-    private boolean isHandoverReservation;
+    private int numberOfReservations;
     private int generatedCalls;
     private int numberOfBlockedCalls;
     private int numberOfDroppedCalls;
@@ -32,9 +32,9 @@ public class Simulator {
     private List<List<String>> statistics;
 
     // Constructor
-    public Simulator(boolean isHandoverReservation) {
+    public Simulator(int numberOfReservations) {
         this.clock = 0;
-        this.isHandoverReservation = isHandoverReservation;
+        this.numberOfReservations = numberOfReservations;
         this.generatedCalls = 0;
         this.numberOfBlockedCalls = 0;
         this.numberOfDroppedCalls = 0;
@@ -47,7 +47,7 @@ public class Simulator {
     public void start() {
         // Create 20 base stations, each with 10 available channels and given FCA Scheme
         for (int i = 0; i < 20; i++) {
-            stations.add(new Station(i + 1, NUMBER_OF_AVAILABLE_CHANNELS, isHandoverReservation));
+            stations.add(new Station(i + 1, NUMBER_OF_AVAILABLE_CHANNELS, numberOfReservations));
         }
 
         // Generate the first initiation record data
@@ -73,7 +73,8 @@ public class Simulator {
                             SCALE, RoundingMode.HALF_UP);
 
         // Print statistics
-        System.out.println("FCA Scheme: " + (isHandoverReservation ? "HANDOVER RESERVATION" : "NO RESERVATION"));
+        System.out.println("FCA Scheme: " + (numberOfReservations > 0 ? 
+                "HANDOVER RESERVATION " + numberOfReservations : "NO RESERVATION"));
         System.out.println("Number of Warm Up Calls: " + WARM_UP_CALLS);
         System.out.println("Total number of Calls (after Warm Up period): " + totalNumberOfCalls);
         System.out.println("Number of Blocked Calls: " + numberOfBlockedCalls);
@@ -96,6 +97,7 @@ public class Simulator {
             // }
             // writer.close();
 
+            writer.write(Integer.toString(numberOfReservations) + ',');
             writer.write(blockedCallsRate.toString() + ',' + droppedCallsRate.toString());
             writer.write("\n");
             writer.close();
@@ -148,12 +150,8 @@ public class Simulator {
         // Check for an available channel for Call Initiation event
         int numberOfAvailableChannels = currentStation.getNumberOfAvailableChannels();
         /* The Call Initiation event is blocked if:
-        1. there is no available channel OR
-        2. there is only 1 available channel AND
-        the Fix Channel Allocation (FCA) scheme is Handover Reservation */
-        if (numberOfAvailableChannels == 0 || 
-           (numberOfAvailableChannels == 1 && 
-           currentStation.isHandoverReservation())) {
+        the number of available channels less than or equal to reserved channels */
+        if (numberOfAvailableChannels <= currentStation.getNumberOfReservations()) {
             // Increase the number of blocked calls
             numberOfBlockedCalls++;
         } else {
