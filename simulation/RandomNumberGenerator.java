@@ -29,9 +29,9 @@ public class RandomNumberGenerator {
 
     // Get an uniform random number for base station
     public static int getBaseStation() {
-        double u = randomBaseStation.nextDouble();
+        int random = randomBaseStation.nextInt(20);
         
-        return (int) Math.round(u*(20 - 1) + 1);
+        return random + 1;
     }
 
     // Get a normal random number for car speed
@@ -45,7 +45,7 @@ public class RandomNumberGenerator {
     public static double getCarPosition() {
         double u = randomCarPosition.nextDouble();
 
-        return (int) Math.round(u*(2 - 0) + 0);
+        return u*(2 - 0) + 0;
     }
 
     // Get an exponential random number for call duration
