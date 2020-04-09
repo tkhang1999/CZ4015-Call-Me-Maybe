@@ -8,14 +8,15 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
+// import java.util.stream.Collectors;
 
 /**
  * The class {@code Simulator} to run the simulation
  */
 public class Simulator {
 
-    private static final int TOTAL_NUMBER_OF_CALLS = 250000;
-    private static final int WARM_UP_CALLS = 50000;
+    private static final int TOTAL_NUMBER_OF_CALLS = 300000;
+    private static final int WARM_UP_CALLS = 100000;
     private static final int SCALE = 5;
     private static final int NUMBER_OF_AVAILABLE_CHANNELS = 10;
     private static final Comparator<Event> COMPARATOR = Comparator.comparing(Event::getTime);
@@ -63,13 +64,13 @@ public class Simulator {
     public void generateStatisticsReport() {
         int totalNumberOfCalls = TOTAL_NUMBER_OF_CALLS - WARM_UP_CALLS;
         BigDecimal blockedCallsRate = BigDecimal.valueOf(numberOfBlockedCalls)
+                    .multiply(BigDecimal.valueOf(100))
                     .divide(BigDecimal.valueOf(totalNumberOfCalls),
-                            SCALE, RoundingMode.HALF_UP)
-                    .multiply(BigDecimal.valueOf(100));
+                            SCALE, RoundingMode.HALF_UP);
         BigDecimal droppedCallsRate = BigDecimal.valueOf(numberOfDroppedCalls)
+                    .multiply(BigDecimal.valueOf(100))
                     .divide(BigDecimal.valueOf(totalNumberOfCalls),
-                            SCALE, RoundingMode.HALF_UP)
-                    .multiply(BigDecimal.valueOf(100));
+                            SCALE, RoundingMode.HALF_UP);
 
         // Print statistics
         System.out.println("FCA Scheme: " + (isHandoverReservation ? "HANDOVER RESERVATION" : "NO RESERVATION"));
@@ -83,6 +84,17 @@ public class Simulator {
         // Write the statistics to output file
         try {
             FileWriter writer = new FileWriter(OUTPUT_FILE, true);
+
+            // Uncomment the section below to output the changes in
+            // blocked calls and dropped calls rate over the number of calls
+            // (need to uncomment "import Collectors" above)
+
+            // for (List<String> statistic : statistics) {
+            //     String collect = statistic.stream().collect(Collectors.joining(","));
+            //     writer.write(collect);
+            //     writer.write("\n");
+            // }
+            // writer.close();
 
             writer.write(blockedCallsRate.toString() + ',' + droppedCallsRate.toString());
             writer.write("\n");
