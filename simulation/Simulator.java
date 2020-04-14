@@ -20,7 +20,7 @@ public class Simulator {
     private static final int SCALE = 5;
     private static final int NUMBER_OF_AVAILABLE_CHANNELS = 10;
     private static final Comparator<Event> COMPARATOR = Comparator.comparing(Event::getTime);
-    private static final String OUTPUT_FILE = "C:\\Users\\Dell\\Documents\\Simulation\\output.csv";
+    private static final String OUTPUT_FILE = "output.csv";
 
     private double clock;
     private int numberOfReservations;
@@ -84,7 +84,8 @@ public class Simulator {
 
         // Write the statistics to output file
         try {
-            FileWriter writer = new FileWriter(OUTPUT_FILE, true);
+            String filePath = System.getProperty("user.dir") + "/" + OUTPUT_FILE;
+            FileWriter writer = new FileWriter(filePath, true);
 
             // Uncomment the section below to output the changes in
             // blocked calls and dropped calls rate over the number of calls
