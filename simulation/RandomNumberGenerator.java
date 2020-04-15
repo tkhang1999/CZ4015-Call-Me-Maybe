@@ -8,10 +8,10 @@ import java.util.Random;
 public class RandomNumberGenerator {
 
     private static final double INTER_ARRIVAL_TIME_MEAN = 1.369680;
-    private static final double SHIFTED_CALL_DURATION_MEAN = 99.831897;
-    private static final double SHIFTED_VALUE = 10.004;
-    private static final double CAR_SPEED_MEAN = 120.072095;
-    private static final double CAR_SPEED_VARIANCE = 81.335230;
+    private static final double SHIFTED_CALL_DURATION_MEAN = 99.831949;
+    private static final double SHIFTED_VALUE = 10.003952;
+    private static final double CAR_SPEED_MEAN = 120.072098;
+    private static final double CAR_SPEED_VARIANCE = 81.335271;
 
     private static Random randomInterArrivalTime = new Random();
     private static Random randomBaseStation = new Random();
