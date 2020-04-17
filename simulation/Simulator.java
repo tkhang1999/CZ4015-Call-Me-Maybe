@@ -180,7 +180,7 @@ public class Simulator {
                 double callRemainingDuration = callDuration - timeToNextStation;
                 // Create a Call Handover event
                 nextEvent = new CallHandoverEvent(handoverTime, currentStation, 
-                                        carSpeed, callRemainingDuration, carDirection);
+                		carSpeed, callRemainingDuration, carDirection);
             }
 
             // Add the next event to FEL
@@ -220,7 +220,8 @@ public class Simulator {
         }
 
         // Check for an available channel for Call Initiation event
-        int numberOfAvailableChannels = currentStation.getNumberOfAvailableChannels();
+        int numberOfAvailableChannels = currentStation
+        		.getNumberOfAvailableChannels();
         // The Call Handover event is dropped if there is no available channel 
         // regardless of the FCA scheme
         if (numberOfAvailableChannels == 0) {
@@ -266,7 +267,7 @@ public class Simulator {
             double callRemainingDuration = callDuration - timeToNextStation;
             // Create a Call Handover event
             nextEvent = new CallHandoverEvent(handoverTime, currentStation, 
-                                    carSpeed, callRemainingDuration, carDirection);
+            		carSpeed, callRemainingDuration, carDirection);
         }
 
         // Add the next event to FEL
@@ -300,8 +301,8 @@ public class Simulator {
         Direction carDirection = RandomNumberGenerator.getCarDirection();
         
         // Generate the first call initiation event
-        CallInitiationEvent event =  new CallInitiationEvent(time, currentStation, carSpeed,
-                                                carPosition, callDuration, carDirection);
+        CallInitiationEvent event =  new CallInitiationEvent(time, currentStation, 
+                carSpeed, carPosition, callDuration, carDirection);
 
         // Increase the number of generated calls
         generatedCalls++;
