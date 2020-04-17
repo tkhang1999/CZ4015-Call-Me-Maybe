@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
-// import java.util.stream.Collectors;
 
 /**
  * The class {@code Simulator} to run the simulation
@@ -86,17 +85,6 @@ public class Simulator {
         try {
             String filePath = System.getProperty("user.dir") + "/" + OUTPUT_FILE;
             FileWriter writer = new FileWriter(filePath, true);
-
-            // Uncomment the section below to output the changes in
-            // blocked calls and dropped calls rate over the number of calls
-            // (need to uncomment "import Collectors" above)
-
-            // for (List<String> statistic : statistics) {
-            //     String collect = statistic.stream().collect(Collectors.joining(","));
-            //     writer.write(collect);
-            //     writer.write("\n");
-            // }
-            // writer.close();
 
             writer.write(Integer.toString(numberOfReservations) + ',');
             writer.write(blockedCallsRate.toString() + ',' + droppedCallsRate.toString());

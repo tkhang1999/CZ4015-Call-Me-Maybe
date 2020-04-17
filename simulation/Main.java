@@ -13,7 +13,7 @@ public class Main {
         System.out.println("----------------------------------------");
 
         // Start the simulation with no reservation
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 100; i++) {
             Simulator simulatorNoReservation = new Simulator(0);
             simulatorNoReservation.start();
             simulatorNoReservation.generateStatisticsReport();
@@ -25,7 +25,7 @@ public class Main {
         System.out.println("----------------------------------------");
 
         // Start the simulation with handover reservation
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 100; i++) {
             Simulator simulatorHandoverReservation = new Simulator(1);
             simulatorHandoverReservation.start();
             simulatorHandoverReservation.generateStatisticsReport();
