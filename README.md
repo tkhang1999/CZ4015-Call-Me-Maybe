@@ -1,5 +1,11 @@
 # Simulation of a Cellular Telephony Network
 
+## Analysis and Implementation
+1. Pseudocode for the simulation program can be found from `pseudocode` folder, including one for 
+Event-Scheduling simulation and one for Process-Oriented simulation
+2. Analysis works include Input Modeling, Warm-Up Analysis, and Output Analysis, which can be found from `analysis` folder.
+3. Implementation of the Event-Scheduling simulation can be found from `simulation` folder.
+
 ## Problem statement
 The telecommunication company XPhone has been receiving complaints from its subscribers
 regarding quality of service (QoS) along a 40 km long highway connecting two major cities.
@@ -63,9 +69,3 @@ requirements and if so how many channels should be reserved for handover for bes
 service? (The percentage of dropped calls is defined as the number of dropped calls
 divided by the total number of calls; and the percentage of blocked calls is defined as the
 number of blocked calls divided by the total number of calls.)
-
-## Analysis and Implementation
-1. Pseudocode for the simulation program can be found from `pseudocode` folder, including one for 
-Event-Scheduling simulation and one for Process-Oriented simulation
-2. Analysis works include Input Modeling, Warm-Up Analysis, and Output Analysis, which can be found from `analysis` folder.
-3. Implementation of the Event-Scheduling simulation can be found from `simulation` folder.
